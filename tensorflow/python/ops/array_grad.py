@@ -360,12 +360,13 @@ def _GatherGrad(op, grad):
   # int32. params_shape is not used in optimizer apply_sparse gradients,
   # so it's fine to convert it back to int32 regardless of truncation.
   params = op.inputs[0]
+  indices = op.inputs[1]
   with ops.colocate_with(params):
     params_shape = array_ops.shape(params, out_type=ops.dtypes.int64)
+    indices = (indices + params_shape[0]) % params_shape[0]
     params_shape = math_ops.to_int32(params_shape)
 
   # Build appropriately shaped IndexedSlices
-  indices = op.inputs[1]
   size = array_ops.expand_dims(array_ops.size(indices), 0)
   values_shape = array_ops.concat([size, params_shape[1:]], 0)
   values = array_ops.reshape(grad, values_shape)

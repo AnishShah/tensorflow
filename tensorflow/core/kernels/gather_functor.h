@@ -56,7 +56,8 @@ SliceIndex HandleCopies(typename TTypes<T>::ConstMatrix params,
     // Grab the index and check its validity.  An earlier version of the
     // code checked it and then grabbed it from memory a second time, which
     // was a security risk since it could have changed in between.
-    const Index index = internal::SubtleMustCopy(indices(i));
+    const Index index = internal::SubtleMustCopy(
+      indices(i) < 0? indices(i) + limit: indices(i));
     if (!FastBoundsCheck(index, limit)) return i;
     // Copy using memcpy if possible, otherwise an Eigen loop
     // TODO(cwhipkey): avoid linking to framework to get Allocator (to improve

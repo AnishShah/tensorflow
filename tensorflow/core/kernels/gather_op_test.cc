@@ -62,6 +62,20 @@ TEST_F(GatherOpTest, ScalarIndices) {
   test::ExpectTensorEqual<float>(expected, *GetOutput(0));
 }
 
+TEST_F(GatherOpTest, ScalarNegativeIndices) {
+  MakeOp(DT_FLOAT, DT_INT32);
+
+  // Feed and run
+  AddInputFromArray<float>(TensorShape({5}), {0, 1, 2, 3, 4});
+  AddInputFromArray<int32>(TensorShape({}), {-2});
+  TF_ASSERT_OK(RunOpKernel());
+
+  // Check the output.
+  Tensor expected(allocator(), DT_FLOAT, TensorShape({}));
+  test::FillValues<float>(&expected, {3});
+  test::ExpectTensorEqual<float>(expected, *GetOutput(0));
+}
+
 TEST_F(GatherOpTest, ScalarIndices_Complex) {
   MakeOp(DT_COMPLEX64, DT_INT32);
 
@@ -86,7 +100,7 @@ TEST_F(GatherOpTest, Simple_TwoD32) {
   // Feed and run
   AddInputFromArray<float>(TensorShape({5, 3}),
                            {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14});
-  AddInputFromArray<int32>(TensorShape({4}), {0, 4, 0, 2});
+  AddInputFromArray<int32>(TensorShape({4}), {0, -1, 0, 2});
   TF_ASSERT_OK(RunOpKernel());
 
   // Check the output.
@@ -100,7 +114,7 @@ TEST_F(GatherOpTest, ZeroSize_TwoD32) {
 
   // Feed and run
   AddInputFromArray<float>(TensorShape({5, 0}), {});
-  AddInputFromArray<int32>(TensorShape({4}), {0, 4, 0, 2});
+  AddInputFromArray<int32>(TensorShape({4}), {0, -1, 0, 2});
   TF_ASSERT_OK(RunOpKernel());
 
   // Check the output.
@@ -114,7 +128,7 @@ TEST_F(GatherOpTest, Simple_TwoD64) {
   // Feed and run
   AddInputFromArray<float>(TensorShape({5, 3}),
                            {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14});
-  AddInputFromArray<int64>(TensorShape({4}), {0, 4, 0, 2});
+  AddInputFromArray<int64>(TensorShape({4}), {0, -1, 0, 2});
   TF_ASSERT_OK(RunOpKernel());
 
   // Check the output.
@@ -128,7 +142,7 @@ TEST_F(GatherOpTest, HighRank) {
 
   // Feed and run
   AddInputFromArray<float>(TensorShape({4}), {0, 1, 2, 3});
-  AddInputFromArray<int32>(TensorShape({2, 3}), {1, 2, 0, 2, 3, 0});
+  AddInputFromArray<int32>(TensorShape({2, 3}), {1, 2, 0, -2, -1, 0});
   TF_ASSERT_OK(RunOpKernel());
 
   // Check the output
@@ -146,7 +160,7 @@ TEST_F(GatherOpTest, Error_IndexOutOfRange) {
   AddInputFromArray<int32>(TensorShape({4}), {0, 4, 99, 2});
   Status s = RunOpKernel();
   EXPECT_TRUE(
-      StringPiece(s.ToString()).contains("indices[2] = 99 is not in [0, 5)"))
+      StringPiece(s.ToString()).contains("indices[2] = 99 is not in [-5, 5)"))
       << s;
 }
 

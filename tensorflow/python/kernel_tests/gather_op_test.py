@@ -52,6 +52,13 @@ class GatherTest(test.TestCase):
         self.assertAllEqual(params_np[4], gather_val)
         self.assertEqual([], gather_t.get_shape())
 
+        # Negative indices
+        indices = constant_op.constant(-2)
+        gather_t = array_ops.gather(params, indices)
+        gather_val = gather_t.eval()
+        self.assertAllEqual(params_np[-2], gather_val)
+        self.assertEqual([], gather_t.get_shape())
+
   def testScalar2D(self):
     with self.test_session(use_gpu=True):
       data = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8],
@@ -65,6 +72,13 @@ class GatherTest(test.TestCase):
         self.assertAllEqual(params_np[2], gather_val)
         self.assertEqual([3], gather_t.get_shape())
 
+        # Negative indices
+        indices = constant_op.constant(-2)
+        gather_t = array_ops.gather(params, indices)
+        gather_val = gather_t.eval()
+        self.assertAllEqual(params_np[-2], gather_val)
+        self.assertEqual([3], gather_t.get_shape())
+
   def testSimpleTwoD32(self):
     with self.test_session(use_gpu=True):
       data = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8],
@@ -72,7 +86,7 @@ class GatherTest(test.TestCase):
       for dtype in _TEST_TYPES:
         params_np = self._buildParams(data, dtype)
         params = constant_op.constant(params_np)
-        indices = constant_op.constant([0, 4, 0, 2])
+        indices = constant_op.constant([0, -1, 0, 2])
         gather_t = array_ops.gather(params, indices)
         gather_val = gather_t.eval()
         self.assertAllEqual(params_np[[0, 4, 0, 2]], gather_val)
@@ -85,7 +99,7 @@ class GatherTest(test.TestCase):
       for indices_shape in (), (0,), (3, 0), (3, 5):
         for dtype in _TEST_TYPES:
           params = self._buildParams(np.random.randn(*shape), dtype)
-          indices = np.random.randint(shape[0], size=indices_shape)
+          indices = np.random.randint(-shape[0], shape[0], size=indices_shape)
           with self.test_session(use_gpu=True):
             tf_params = constant_op.constant(params)
             tf_indices = constant_op.constant(indices)
@@ -120,7 +134,7 @@ class GatherTest(test.TestCase):
       params = [0, 1, 2]
       indices = [[7]]
       gather = array_ops.gather(params, indices)
-      with self.assertRaisesOpError(r"indices\[0,0\] = 7 is not in \[0, 3\)"):
+      with self.assertRaisesOpError(r"indices\[0,0\] = 7 is not in \[-3, 3\)"):
         gather.eval()
 
   def testEmptySlices(self):

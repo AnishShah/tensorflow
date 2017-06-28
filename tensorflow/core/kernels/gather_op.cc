@@ -84,7 +84,8 @@ class GatherOp : public OpKernel {
           c, bad_i < 0,
           errors::InvalidArgument(
               "indices", SliceDebugString(indices.shape(), bad_i), " = ",
-              indices_flat(bad_i), " is not in [0, ", params.dim_size(0), ")"));
+              indices_flat(bad_i), " is not in [", -params.dim_size(0),
+              ", ", params.dim_size(0), ")"));
     }
   }
 };
